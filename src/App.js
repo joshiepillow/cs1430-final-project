@@ -3,20 +3,12 @@ import React from 'react';
 import './App.css';
 
 function App() {
-  const [isMouseDown, setMouseDown] = React.useState(false)
   const [lastX, setLastX] = React.useState(0)
   const [lastY, setLastY] = React.useState(0)
-
-  const mouseDown = (_) => {
-    setMouseDown(true)
-  }
-  const mouseUp = (_) => {
-    setMouseDown(false)
-  }
   
   const mouseMove =(event) => {
     const [x, y] = [event.nativeEvent.offsetX, event.nativeEvent.offsetY]
-    if (isMouseDown) {
+    if (event.buttons & 1) {
       const ctx = event.target.getContext("2d")
       ctx.strokeStyle = "blue";
       ctx.lineWidth = 4;
@@ -37,8 +29,6 @@ function App() {
                 width="600"
                 height="600"
                 style={{ border: "4px solid white" }}
-                onMouseDown={mouseDown}
-                onMouseUp={mouseUp}
                 onMouseMove={mouseMove}
             />
       </header>
