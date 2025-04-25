@@ -1,22 +1,46 @@
 import logo from './logo.svg';
+import React from 'react';
 import './App.css';
 
 function App() {
+  const [isMouseDown, setMouseDown] = React.useState(false)
+  const [lastX, setLastX] = React.useState(0)
+  const [lastY, setLastY] = React.useState(0)
+
+  const mouseDown = (event) => {
+    setMouseDown(true)
+  }
+  const mouseUp = (event) => {
+    setMouseDown(false)
+  }
+  
+  const mouseMove =(event) => {
+    const [x, y] = [event.nativeEvent.offsetX, event.nativeEvent.offsetY]
+    if (isMouseDown) {
+      const ctx = event.target.getContext("2d")
+      ctx.strokeStyle = "blue";
+      ctx.lineWidth = 4;
+      ctx.beginPath()
+      ctx.moveTo(lastX, lastY)
+      ctx.lineTo(x, y)
+      ctx.stroke()
+    }
+    setLastX(x)
+    setLastY(y)
+  }
+
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <p>Draw</p>
+        <canvas
+                width="600"
+                height="600"
+                style={{ border: "4px solid white" }}
+                onMouseDown={mouseDown}
+                onMouseUp={mouseUp}
+                onMouseMove={mouseMove}
+            />
       </header>
     </div>
   );
