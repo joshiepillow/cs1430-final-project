@@ -7,10 +7,10 @@ function App() {
   const [lastX, setLastX] = React.useState(0)
   const [lastY, setLastY] = React.useState(0)
 
-  const mouseDown = (event) => {
+  const mouseDown = (_) => {
     setMouseDown(true)
   }
-  const mouseUp = (event) => {
+  const mouseUp = (_) => {
     setMouseDown(false)
   }
   
