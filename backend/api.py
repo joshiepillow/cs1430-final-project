@@ -11,10 +11,10 @@ def process_image():
     if "image" not in request.files:
         return jsonify({"error": "No image file provided"}), 400
 
-    imageFile = request.files["image"]
+    image_file = request.files["image"]
 
     try:
-        image = Image.open(imageFile)
+        image = Image.open(image_file)
 
         width, height = image.size
         res = {"width": width, "height": height, "format": image.format}
