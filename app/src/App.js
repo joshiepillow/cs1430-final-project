@@ -28,6 +28,26 @@ function App() {
     ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
   }
 
+  const sendCanvas = async () => {
+    const canvas = canvasRef.current;
+    canvas.toBlob(async (blob) => {
+      const formData = new FormData();
+      formData.append("image", blob, "canvas.png");
+
+      try {
+        const response = await fetch("http://localhost:5000/process-image", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await response.json();
+        alert(JSON.stringify(result));
+      } catch (error) {
+        alert("Error: " + error.message);
+      }
+    });
+  };
+
   return (
     <div className="App">
       <header className="App-header">
@@ -40,6 +60,7 @@ function App() {
                 onMouseMove={mouseMove}
             />
         <Button onClick={clear}>Clear</Button>
+        <Button onClick={sendCanvas}>Send Canvas</Button>
       </header>
     </div>
   );
