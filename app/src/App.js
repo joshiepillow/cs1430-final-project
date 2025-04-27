@@ -1,32 +1,29 @@
-import logo from './logo.svg';
 import React from 'react';
 import { Button } from '@mui/material'
+import Canvas from './Canvas'
+import categoriesFile from './categories.txt'
 import './App.css';
 
 function App() {
-  const [lastX, setLastX] = React.useState(0)
-  const [lastY, setLastY] = React.useState(0)
   const canvasRef = React.useRef(null)
-  
-  const mouseMove = (event) => {
-    const [x, y] = [event.nativeEvent.offsetX, event.nativeEvent.offsetY]
-    if (event.buttons & 1) {
-      const ctx = canvasRef.current.getContext("2d")
-      ctx.strokeStyle = "blue";
-      ctx.lineWidth = 4;
-      ctx.beginPath()
-      ctx.moveTo(lastX, lastY)
-      ctx.lineTo(x, y)
-      ctx.stroke()
+  const [categories, setCategories] = React.useState(null)
+  const [category, setCategory] = React.useState(null)
+
+  React.useEffect(() => {
+    try {
+      fetch(categoriesFile).then(res => res.text())
+        .then(res => {setCategories(res.split("\n"))})
+    } catch (error) {
+      alert("Error: " + error.message);
     }
-    setLastX(x)
-    setLastY(y)
+  }, [])
+
+  const newCategory = () => {
+    if (categories)
+      setCategory(categories[Math.floor(Math.random() * categories.length)])
   }
 
-  const clear = (_) => {
-    const ctx = canvasRef.current.getContext('2d');
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-  }
+  if (!category) newCategory()
 
   const sendCanvas = async () => {
     const canvas = canvasRef.current;
@@ -51,16 +48,10 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <p>Draw</p>
-        <canvas
-                ref={canvasRef}
-                width="600"
-                height="600"
-                style={{ border: "4px solid white" }}
-                onMouseMove={mouseMove}
-            />
-        <Button onClick={clear}>Clear</Button>
+        <p>Draw a {category || "..."}</p>
+        <Canvas canvasRef={canvasRef}/>
         <Button onClick={sendCanvas}>Send Canvas</Button>
+        <Button onClick={newCategory}>New Category</Button>
       </header>
     </div>
   );
