@@ -17,6 +17,7 @@ const DrawingPage = (props) => {
         
                 const result = await response.json();
                 alert(JSON.stringify(result));
+                props.setModelGuess(JSON.stringify(result));
             } catch (error) {
                 alert("Error: " + error.message);
             }

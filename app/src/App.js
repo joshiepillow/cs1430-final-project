@@ -44,7 +44,7 @@ function App() {
     const choosePage = () => {
         switch(drawing) {
             case "drawing":
-                return <DrawingPage canvas={canvas} category={category} setDrawing={setDrawing}/>
+                return <DrawingPage canvas={canvas} category={category} setDrawing={setDrawing} setModelGuess={setModelGuess}/>
             case "guessing":
                 return <GuessingPage canvas={canvas} categories={categories} guess={guess} setGuess={setGuess} setDrawing={setDrawing}/>
             case "result":
