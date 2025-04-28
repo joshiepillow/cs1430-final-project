@@ -9,7 +9,7 @@ pip install -r requirements.txt
 Or just:
 
 ```bash
-pip install flask flask-cors pandas
+pip install flask flask-cors pandas pillow
 ```
 
 ## Running the server
