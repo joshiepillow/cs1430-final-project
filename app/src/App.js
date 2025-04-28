@@ -1,60 +1,64 @@
 import React from 'react';
-import { Button } from '@mui/material'
-import Canvas from './Canvas'
-import categoriesFile from './categories.txt'
+import DrawingPage from './DrawingPage';
+import GuessingPage from './GuessingPage';
+import ResultPage from './ResultPage';
+import Canvas from './Canvas';
+import categoriesFile from './categories.txt';
 import './App.css';
 
 function App() {
-  const canvasRef = React.useRef(null)
-  const [categories, setCategories] = React.useState(null)
-  const [category, setCategory] = React.useState(null)
+    const canvasRef = React.useRef(null);
+    const [image, setImage] = React.useState(null);
+    const [categories, setCategories] = React.useState(null);
+    const [category, setCategory] = React.useState(null);
+    const [drawing, setDrawing] = React.useState("drawing");
+    const [guess, setGuess] = React.useState(null);
+    const [modelGuess, setModelGuess] = React.useState(null);
 
-  React.useEffect(() => {
-    try {
-      fetch(categoriesFile).then(res => res.text())
-        .then(res => {setCategories(res.split("\n"))})
-    } catch (error) {
-      alert("Error: " + error.message);
+    React.useEffect(() => {
+        try {
+            fetch(categoriesFile).then(res => res.text())
+                .then(res => { setCategories(res.split("\n")) })
+        } catch (error) {
+            alert("Error: " + error.message);
+        }
+    }, [])
+
+    const newCategory = () => {
+        if (categories)
+            setCategory(categories[Math.floor(Math.random() * categories.length)])
     }
-  }, [])
 
-  const newCategory = () => {
-    if (categories)
-      setCategory(categories[Math.floor(Math.random() * categories.length)])
-  }
+    const reset = () => {
+        setDrawing("drawing");
+        newCategory();
+        setImage(null);
+        setGuess(null);
+        setModelGuess(null);
+    }
 
-  if (!category) newCategory()
+    if (!category) newCategory()
 
-  const sendCanvas = async () => {
-    const canvas = canvasRef.current;
-    canvas.toBlob(async (blob) => {
-      const formData = new FormData();
-      formData.append("image", blob, "canvas.png");
+    const canvas = <Canvas canvasRef={canvasRef} frozen={drawing != "drawing"} image={image} setImage={setImage}/>
 
-      try {
-        const response = await fetch("http://localhost:5000/process-image", {
-          method: "POST",
-          body: formData,
-        });
+    const choosePage = () => {
+        switch(drawing) {
+            case "drawing":
+                return <DrawingPage canvas={canvas} category={category} setDrawing={setDrawing}/>
+            case "guessing":
+                return <GuessingPage canvas={canvas} categories={categories} guess={guess} setGuess={setGuess} setDrawing={setDrawing}/>
+            case "result":
+                return <ResultPage canvas={canvas} modelGuess={modelGuess} guess={guess} restart={reset}/>
+        }
+    }
 
-        const result = await response.json();
-        alert(JSON.stringify(result));
-      } catch (error) {
-        alert("Error: " + error.message);
-      }
-    });
-  };
-
-  return (
-    <div className="App">
-      <header className="App-header">
-        <p>Draw a {category || "..."}</p>
-        <Canvas canvasRef={canvasRef}/>
-        <Button onClick={sendCanvas}>Send Canvas</Button>
-        <Button onClick={newCategory}>New Category</Button>
-      </header>
-    </div>
-  );
+    return (
+        <div className="App">
+            <header className="App-header">
+            {choosePage()}
+            </header>
+        </div>
+    );
 }
 
 export default App;
