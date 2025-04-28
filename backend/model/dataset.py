@@ -5,27 +5,33 @@ from PIL import Image
 from constants import INPUT_SHAPE
 from sklearn.model_selection import train_test_split
 import numpy as np
-from sklearn.preprocessing import LabelEncoder
+from classLabels import LABELS_TO_INDEX
 import tqdm
+import sys
 
 
 class Dataset:
     def __init__(self, dataset_path, imgs_per_class=3000):
         self.dataset_path = dataset_path
         self.imgs_per_class = imgs_per_class
-        self.dataset = self._load_dataset()
-        self.label_encoder = LabelEncoder()
-        self.metadata["word"] = self.label_encoder.fit_transform(self.metadata["word"])
+        self._load_metadata()
+
         self.random_translation = tf.keras.layers.RandomTranslation(
             0.1, 0.1, fill_mode="reflect"
         )
         self.random_zoom = tf.keras.layers.RandomZoom(0.1, 0.1, fill_mode="reflect")
+        self.didPrint = False
 
-    def _load_dataset(self):
+    def _load_metadata(self):
         csv_path = os.path.join(self.dataset_path, "master_doodle_dataframe.csv")
         self.metadata = pd.read_csv(
-            csv_path, usecols=lambda column: column != "drawing"
-        )  # dont load the drawing column because it is too large
+            csv_path, usecols=lambda column: column == "word" or column == "image_path"
+        )
+
+        # drop rows with unused labels
+        self.metadata = self.metadata[
+            self.metadata["word"].isin(LABELS_TO_INDEX.keys())
+        ]
 
         if self.imgs_per_class < 3000:
             self.metadata = (
@@ -34,53 +40,14 @@ class Dataset:
                 .reset_index(drop=True)
             )
 
+        self.metadata["word"] = self.metadata["word"].map(lambda x: LABELS_TO_INDEX[x])
+
         return self.metadata
 
-    def _load_image(self, img_path):
-        full_path = os.path.join(self.dataset_path, img_path)
-        img = Image.open(full_path)
-        if img is None:
-            raise FileNotFoundError(f"Image not found at path: {full_path}")
+    def get_tf_dataset(self, metadata, cache_path, batch_size=32, shuffle=True):
+        if shuffle:
+            metadata = metadata.sample(frac=1, random_state=42).reset_index(drop=True)
 
-        img = np.array(img, dtype=np.float32)
-        img = img / 255.0
-        img = np.expand_dims(img, axis=-1)
-
-        return img
-
-    def _load_images_from_metadata(self, metadata):
-        images = []
-        for path in tqdm.tqdm(metadata["image_path"], desc="Loading images"):
-            path = path.replace("data", "doodle", 1)
-            img = self._load_image(path)
-            images.append(img)
-        return np.array(images, dtype=np.float32)
-
-    # def get_tf_dataset(self, metadata, batch_size=32, shuffle=True, preprocess=True):
-    #     images = self._load_images_from_metadata(metadata)
-    #     labels = metadata["word"].tolist()
-
-    #     dataset = tf.data.Dataset.from_tensor_slices((images, labels))
-
-    #     def _augment(image, label):
-    #         if preprocess:
-    #             image = self.preprocess(image)
-
-    #         return image, label
-
-    #     dataset = dataset.map(_augment, num_parallel_calls=tf.data.AUTOTUNE)
-
-    #     if shuffle:
-    #         dataset = dataset.shuffle(buffer_size=len(images))
-
-    #     dataset = dataset.batch(batch_size)
-    #     dataset = dataset.prefetch(tf.data.AUTOTUNE)
-
-    #     return dataset
-
-    def get_tf_dataset(
-        self, metadata, batch_size=32, shuffle=True, cache_path="/tmp/tf_cache"
-    ):
         image_paths = metadata["image_path"].tolist()
         labels = metadata["word"].tolist()
 
@@ -92,18 +59,15 @@ class Dataset:
 
             img = tf.io.read_file(img_path)
             img = tf.image.decode_png(img, channels=1)
-            img = tf.image.convert_image_dtype(img, tf.float32)
-
             img = tf.image.resize(img, INPUT_SHAPE[:2])
+
+            img = tf.image.convert_image_dtype(img, tf.float32)
 
             return img, label
 
         dataset = dataset.map(_load, num_parallel_calls=tf.data.AUTOTUNE)
 
         dataset = dataset.cache(cache_path)
-
-        if shuffle:
-            dataset = dataset.shuffle(buffer_size=len(image_paths))
 
         dataset = dataset.map(self._tf_augment, num_parallel_calls=tf.data.AUTOTUNE)
 
@@ -113,15 +77,14 @@ class Dataset:
         return dataset
 
     def _tf_augment(self, img, label):
-        img = tf.image.random_flip_left_right(img)
-        img = tf.image.random_flip_up_down(img)
+        # img = tf.image.random_flip_left_right(img)
 
-        img = tf.image.rot90(
-            img, k=tf.random.uniform(shape=[], minval=0, maxval=4, dtype=tf.int32)
-        )
+        # degrees = tf.random.uniform([], minval=-20, maxval=20, dtype=tf.float32)
+        # radians = degrees * (tf.constant(3.14159265359) / 180.0)
+        # img = tfa.image.rotate(img, radians, fill_mode="reflect")
 
-        img = self.random_translation(img)
-        img = self.random_zoom(img)
+        # img = self.random_translation(img)
+        # img = self.random_zoom(img)
 
         return img, label
 
@@ -139,9 +102,6 @@ class Dataset:
             stratify=train_val_data["word"],
         )
         return train_data, val_data, test_data
-
-    def get_name_from_label(self, label):
-        return self.label_encoder.inverse_transform([label])[0]
 
     def preprocess(self, img: np.ndarray) -> np.ndarray:
         """

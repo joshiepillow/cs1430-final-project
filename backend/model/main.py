@@ -14,6 +14,7 @@ MODEL_VERSION_MAP = {
 DATASET_PATH = "data"
 CHECKPOINTS_DIR = "checkpoints"
 LOGS_DIR = "logs"
+TEMPFILE_DIR = "/tmp"
 
 
 def parse_args():
@@ -64,16 +65,22 @@ def main(args):
 
         print("Loading training and validation datasets...")
         train_tf_dataset = dataset.get_tf_dataset(
-            train_data, batch_size=32, shuffle=True  # , preprocess=True
+            train_data,
+            os.path.join(TEMPFILE_DIR, "train_cache"),
+            batch_size=32,
+            shuffle=True,  # , preprocess=True
         )
         val_tf_dataset = dataset.get_tf_dataset(
-            val_data, batch_size=32, shuffle=False  # , preprocess=True
+            val_data,
+            os.path.join(TEMPFILE_DIR, "val_cache"),
+            batch_size=32,
+            shuffle=False,  # , preprocess=True
         )
 
         checkpoint_callback = ModelCheckpoint(
             filepath=os.path.join(
-                CHECKPOINTS_DIR,
-                f"model_{args.model_version}_{{epoch:02d}}_{{val_loss:.2f}}.weights.h5",
+                checkpoint_dir,
+                f"epoch_{{epoch:02d}}_{{val_loss:.2f}}.weights.h5",
             ),
             save_best_only=True,
             save_weights_only=True,
@@ -82,20 +89,23 @@ def main(args):
             verbose=1,
         )
         tensorboard_callback = TensorBoard(
-            log_dir=LOGS_DIR, update_freq="batch", profile_batch=0
+            log_dir=log_dir, update_freq="batch", profile_batch=0
         )
 
         print(f"Training model version {args.model_version}...")
         model.fit(
             train_tf_dataset,
             validation_data=val_tf_dataset,
-            epochs=10,
+            epochs=20,
             callbacks=[checkpoint_callback, tensorboard_callback],
         )
     elif args.mode == "evaluate":
         print(f"Evaluating model version {args.model_version}...")
         test_tf_dataset = dataset.get_tf_dataset(
-            test_data, batch_size=32, shuffle=False  # , preprocess=False
+            test_data,
+            os.path.join(TEMPFILE_DIR, "test_cache"),
+            batch_size=32,
+            shuffle=False,  # , preprocess=False
         )
         # Add evaluation logic here
 
