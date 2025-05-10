@@ -47,17 +47,19 @@ function App() {
 
     const startRound = () => {
         reset();
-        setRoundActive(true);
         setTimeLeft(20);
+        setRoundActive(true);
     };
 
     React.useEffect(() => {
-        if (roundActive && timeLeft > 0) {
-            const interval = setInterval(() => {
-                setTimeLeft((prev) => {
-                    if (prev <= 1) {
+        let interval = null;
+        let isFetching = false;
+
+        if (roundActive) {
+            interval = setInterval(() => {
+                setTimeLeft((prevTimeLeft) => {
+                    if (prevTimeLeft <= 0) {
                         clearInterval(interval);
-                        console.log("test");
                         alert(
                             "Time's up! The correct category was " + category
                         );
@@ -66,12 +68,17 @@ function App() {
                         return 0;
                     }
 
-                    if (prev <= 20 && prev % 2 === 0) {
+                    if (prevTimeLeft % 2 === 0 && !isFetching) {
+                        isFetching = true;
                         const canvas = canvasRef.current;
                         canvas.toBlob((blob) => {
                             const formData = new FormData();
                             formData.append("image", blob, "canvas.png");
 
+                            console.log(
+                                "Sending image to server at time:",
+                                Date.now()
+                            );
                             fetch("http://localhost:5000/process-image", {
                                 method: "POST",
                                 body: formData,
@@ -86,25 +93,28 @@ function App() {
 
                                     if (topGuess === category) {
                                         alert(
-                                            "Correct! The category was " +
-                                                category
+                                            `Correct! The category was ${category}`
                                         );
+                                        clearInterval(interval);
                                         setRoundActive(false);
                                         setDrawing("result");
                                     }
                                 })
-                                .catch((error) => {
-                                    console.error("Error:", error.message);
+                                .catch((error) =>
+                                    console.error("Error:", error.message)
+                                )
+                                .finally(() => {
+                                    isFetching = false;
                                 });
                         });
                     }
 
-                    return prev - 1;
+                    return prevTimeLeft - 1;
                 });
             }, 1000);
-
-            return () => clearInterval(interval);
         }
+
+        return () => clearInterval(interval);
     }, [roundActive, category]);
 
     if (!category) newCategory();
