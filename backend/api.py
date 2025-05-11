@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from PIL import Image
 from model import modelV1
+from model import modelV3
 from model.constants import IMAGE_SIZE
 from model.classLabels import INDEX_TO_LABELS
 import numpy as np
@@ -12,6 +13,7 @@ CORS(app)
 
 MODELS_AND_WEIGHTS = [
     ["easy", modelV1.createModel, "model_v1_1.45.weights.h5"],
+    ["hard", modelV3.createModel, "model_v3_0.70.weights.h5"],
 ]
 
 
@@ -72,14 +74,15 @@ def process_image():
 
         augmented_arrays = [
             np.expand_dims(
-                np.array(aug_image.resize(IMAGE_SIZE), dtype=np.float32), axis=-1
+                np.array(aug_image.resize(IMAGE_SIZE), dtype=np.float32) / 255.0,
+                axis=-1,
             )
             for aug_image in augmented_images
         ]
 
         image_batch = np.stack(augmented_arrays, axis=0)
 
-        batch_predictions = models["easy"](image_batch, training=False)
+        batch_predictions = models["hard"](image_batch, training=False)
         predictions = {}
         for single_prediction in batch_predictions:
             for i, val in enumerate(single_prediction):

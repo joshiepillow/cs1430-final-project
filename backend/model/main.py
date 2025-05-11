@@ -4,11 +4,13 @@ import os
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard
 import modelV1
+import modelV3
 from dataset import Dataset
 import datetime
 
 MODEL_VERSION_MAP = {
     "v1": modelV1.createModel,
+    "v3": modelV3.createModel,
 }
 
 DATASET_PATH = "data"
@@ -68,13 +70,15 @@ def main(args):
             train_data,
             os.path.join(TEMPFILE_DIR, "train_cache"),
             batch_size=32,
-            shuffle=True,  # , preprocess=True
+            shuffle=True,
+            preprocess=True,
         )
         val_tf_dataset = dataset.get_tf_dataset(
             val_data,
             os.path.join(TEMPFILE_DIR, "val_cache"),
             batch_size=32,
-            shuffle=False,  # , preprocess=True
+            shuffle=False,
+            preprocess=False,
         )
 
         checkpoint_callback = ModelCheckpoint(

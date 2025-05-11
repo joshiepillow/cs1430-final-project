@@ -1,0 +1,65 @@
+.probability-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px;
+    z-index: 1000;
+    width: 400px;
+    overflow-y: auto;
+    font-family: Arial, sans-serif;
+    border-radius: 5px;
+}
+
+.probability-overlay h4 {
+    margin: 0 0 10px 0;
+    text-align: center;
+}
+
+.probability-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.probability-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.probability-label {
+    flex: 1;
+    text-align: right;
+    margin-right: 10px;
+    white-space: nowrap;
+}
+
+.probability-bar-container {
+    flex: 3;
+    position: relative;
+    background-color: #444;
+    height: 20px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.probability-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #4caf50;
+    height: 100%;
+}
+
+.probability-percentage {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 12px;
+    line-height: 20px;
+    white-space: nowrap;
+}

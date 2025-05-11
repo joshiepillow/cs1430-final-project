@@ -1,13 +1,10 @@
 import tensorflow as tf
 import os
 import pandas as pd
-from PIL import Image
 from constants import INPUT_SHAPE
 from sklearn.model_selection import train_test_split
 import numpy as np
 from classLabels import LABELS_TO_INDEX
-import tqdm
-import sys
 
 
 class Dataset:
@@ -17,10 +14,11 @@ class Dataset:
         self._load_metadata()
 
         self.random_translation = tf.keras.layers.RandomTranslation(
-            0.1, 0.1, fill_mode="reflect"
+            0.1, 0.1, fill_mode="constant", fill_value=255
         )
-        self.random_zoom = tf.keras.layers.RandomZoom(0.1, 0.1, fill_mode="reflect")
-        self.didPrint = False
+        self.random_zoom = tf.keras.layers.RandomZoom(
+            0.1, 0.1, fill_mode="constant", fill_value=255
+        )
 
     def _load_metadata(self):
         csv_path = os.path.join(self.dataset_path, "master_doodle_dataframe.csv")
@@ -33,6 +31,16 @@ class Dataset:
             self.metadata["word"].isin(LABELS_TO_INDEX.keys())
         ]
 
+        # print warning if labels in labels_to_index are not in the dataset
+        labels = set(LABELS_TO_INDEX.keys())
+        dataset_labels = set(self.metadata["word"].unique())
+        unused_labels = labels - dataset_labels
+        if unused_labels:
+            print(
+                f"Error: The following labels are not in the doodle dataset: {', '.join(unused_labels)}"
+            )
+            exit(1)
+
         if self.imgs_per_class < 3000:
             self.metadata = (
                 self.metadata.groupby("word")
@@ -44,7 +52,9 @@ class Dataset:
 
         return self.metadata
 
-    def get_tf_dataset(self, metadata, cache_path, batch_size=32, shuffle=True):
+    def get_tf_dataset(
+        self, metadata, cache_path, batch_size=32, shuffle=True, preprocess=True
+    ):
         if shuffle:
             metadata = metadata.sample(frac=1, random_state=42).reset_index(drop=True)
 
@@ -62,6 +72,7 @@ class Dataset:
             img = tf.image.resize(img, INPUT_SHAPE[:2])
 
             img = tf.image.convert_image_dtype(img, tf.float32)
+            img = img / 255.0
 
             return img, label
 
@@ -69,7 +80,8 @@ class Dataset:
 
         dataset = dataset.cache(cache_path)
 
-        dataset = dataset.map(self._tf_augment, num_parallel_calls=tf.data.AUTOTUNE)
+        if preprocess:
+            dataset = dataset.map(self._tf_augment, num_parallel_calls=tf.data.AUTOTUNE)
 
         dataset = dataset.batch(batch_size)
         dataset = dataset.prefetch(tf.data.AUTOTUNE)
@@ -77,14 +89,14 @@ class Dataset:
         return dataset
 
     def _tf_augment(self, img, label):
-        # img = tf.image.random_flip_left_right(img)
+        img = tf.image.random_flip_left_right(img)
 
         # degrees = tf.random.uniform([], minval=-20, maxval=20, dtype=tf.float32)
         # radians = degrees * (tf.constant(3.14159265359) / 180.0)
         # img = tfa.image.rotate(img, radians, fill_mode="reflect")
 
-        # img = self.random_translation(img)
-        # img = self.random_zoom(img)
+        img = self.random_translation(img)
+        img = self.random_zoom(img)
 
         return img, label
 

@@ -1,8 +1,10 @@
 import React from "react";
 import DrawingPage from "./DrawingPage";
-import GuessingPage from "./GuessingPage";
+import CategoryChoicePage from "./CategoryChoicePage";
+import HomePage from "./HomePage";
 import ResultPage from "./ResultPage";
 import Canvas from "./Canvas";
+import ProbabilityOverlay from "./ProbabilityOverlay";
 import categoriesFile from "./categories.txt";
 import "./App.css";
 import { Button } from "@mui/material";
@@ -12,11 +14,12 @@ function App() {
     const [image, setImage] = React.useState(null);
     const [categories, setCategories] = React.useState(null);
     const [category, setCategory] = React.useState(null);
-    const [drawing, setDrawing] = React.useState("drawing");
-    const [guess, setGuess] = React.useState(null);
+    const [drawing, setDrawing] = React.useState("homepage");
     const [modelGuess, setModelGuess] = React.useState(null);
+    const [probabilities, setProbabilities] = React.useState([]);
     const [roundActive, setRoundActive] = React.useState(false);
     const [timeLeft, setTimeLeft] = React.useState(20);
+    const [showPopup, setShowPopup] = React.useState(false);
 
     React.useEffect(() => {
         try {
@@ -30,25 +33,30 @@ function App() {
         }
     }, []);
 
-    const newCategory = () => {
-        if (categories)
-            setCategory(
-                categories[Math.floor(Math.random() * categories.length)]
-            );
-    };
-
     const reset = () => {
-        setDrawing("drawing");
-        newCategory();
+        setDrawing("categoryChoice");
         setImage(null);
-        setGuess(null);
         setModelGuess(null);
+        setProbabilities([]);
+        setShowPopup(false);
     };
 
-    const startRound = () => {
-        reset();
+    const startRound = (selectedCategory) => {
+        setCategory(selectedCategory);
         setTimeLeft(20);
         setRoundActive(true);
+        setDrawing("drawing");
+    };
+
+    const endRound = () => {
+        const canvas = canvasRef.current;
+        if (canvas) {
+            const dataUrl = canvas.toDataURL("image/png");
+            setImage(dataUrl);
+        }
+        setRoundActive(false);
+        setDrawing("result");
+        setShowPopup(true);
     };
 
     React.useEffect(() => {
@@ -60,11 +68,7 @@ function App() {
                 setTimeLeft((prevTimeLeft) => {
                     if (prevTimeLeft <= 0) {
                         clearInterval(interval);
-                        alert(
-                            "Time's up! The correct category was " + category
-                        );
-                        setRoundActive(false);
-                        setDrawing("result");
+                        endRound();
                         return 0;
                     }
 
@@ -75,29 +79,25 @@ function App() {
                             const formData = new FormData();
                             formData.append("image", blob, "canvas.png");
 
-                            console.log(
-                                "Sending image to server at time:",
-                                Date.now()
-                            );
                             fetch("http://localhost:5000/process-image", {
                                 method: "POST",
                                 body: formData,
                             })
                                 .then((response) => response.json())
                                 .then((result) => {
-                                    const topGuess = Object.keys(result).reduce(
-                                        (a, b) =>
-                                            result[a] > result[b] ? a : b
-                                    );
+                                    const sortedProbabilities = Object.entries(
+                                        result
+                                    )
+                                        .sort(([, a], [, b]) => b - a)
+                                        .slice(0, 10);
+                                    setProbabilities(sortedProbabilities);
+
+                                    const topGuess = sortedProbabilities[0][0];
                                     setModelGuess(topGuess);
 
                                     if (topGuess === category) {
-                                        alert(
-                                            `Correct! The category was ${category}`
-                                        );
                                         clearInterval(interval);
-                                        setRoundActive(false);
-                                        setDrawing("result");
+                                        endRound();
                                     }
                                 })
                                 .catch((error) =>
@@ -117,8 +117,6 @@ function App() {
         return () => clearInterval(interval);
     }, [roundActive, category]);
 
-    if (!category) newCategory();
-
     const canvas = (
         <Canvas
             canvasRef={canvasRef}
@@ -128,8 +126,22 @@ function App() {
         />
     );
 
+    const handlePopupClose = () => {
+        setShowPopup(false);
+        setDrawing("homepage");
+    };
+
     const choosePage = () => {
         switch (drawing) {
+            case "homepage":
+                return <HomePage onStart={reset} />;
+            case "categoryChoice":
+                return (
+                    <CategoryChoicePage
+                        categories={categories}
+                        onCategorySelect={startRound}
+                    />
+                );
             case "drawing":
                 return (
                     <DrawingPage
@@ -139,43 +151,23 @@ function App() {
                         modelGuess={modelGuess}
                     />
                 );
-            case "guessing":
-                return (
-                    <GuessingPage
-                        canvas={canvas}
-                        categories={categories}
-                        guess={guess}
-                        setGuess={setGuess}
-                        setDrawing={setDrawing}
-                    />
-                );
-            case "result":
-                return (
-                    <ResultPage
-                        canvas={canvas}
-                        modelGuess={modelGuess}
-                        guess={guess}
-                        restart={reset}
-                    />
-                );
             default:
-                return (
-                    <p>
-                        Something went wrong. Please refresh the page and try
-                        again.
-                    </p>
-                );
+                return null;
         }
     };
 
     return (
         <div className="App">
-            <header className="App-header">
-                {!roundActive && (
-                    <Button onClick={startRound}>Start Round</Button>
-                )}
-                {choosePage()}
-            </header>
+            <header className="App-header">{choosePage()}</header>
+            <ProbabilityOverlay probabilities={probabilities} />
+            {showPopup && (
+                <ResultPage
+                    category={category}
+                    modelGuess={modelGuess}
+                    image={image}
+                    onClose={handlePopupClose}
+                />
+            )}
         </div>
     );
 }
