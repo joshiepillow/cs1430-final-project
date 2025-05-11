@@ -14,10 +14,10 @@ class Dataset:
         self._load_metadata()
 
         self.random_translation = tf.keras.layers.RandomTranslation(
-            0.1, 0.1, fill_mode="constant", fill_value=255
+            0.1, 0.1, fill_mode="constant", fill_value=1
         )
         self.random_zoom = tf.keras.layers.RandomZoom(
-            0.1, 0.1, fill_mode="constant", fill_value=255
+            0.1, 0.1, fill_mode="constant", fill_value=1
         )
 
     def _load_metadata(self):

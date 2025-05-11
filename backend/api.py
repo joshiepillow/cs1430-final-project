@@ -1,8 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from PIL import Image
-from model import modelV1
-from model import modelV3
+from model import modelV1, modelV2, modelV3
 from model.constants import IMAGE_SIZE
 from model.classLabels import INDEX_TO_LABELS
 import numpy as np
@@ -12,9 +11,12 @@ app = Flask(__name__)
 CORS(app)
 
 MODELS_AND_WEIGHTS = [
-    ["easy", modelV1.createModel, "model_v1_1.45.weights.h5"],
+    ["easy", modelV1.createModel, "model_v1_1.09.weights.h5"],
+    ["medium", modelV2.createModel, "model_v2_1.59.weights.h5"],
     ["hard", modelV3.createModel, "model_v3_0.70.weights.h5"],
 ]
+
+current_mode = "easy"
 
 
 def loadModels():
@@ -106,6 +108,22 @@ def process_image():
         traceback.print_exc()
 
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/set-mode", methods=["POST"])
+def set_mode():
+    global current_mode
+    data = request.get_json()
+    if "mode" not in data:
+        return jsonify({"error": "No mode provided"}), 400
+
+    new_mode = data["mode"]
+    if new_mode not in [model[0] for model in MODELS_AND_WEIGHTS]:
+        return jsonify({"error": "Invalid mode"}), 400
+
+    current_mode = new_mode
+    print(f"Mode changed to {current_mode}")
+    return jsonify({"message": f"Mode set to {current_mode}"}), 200
 
 
 if __name__ == "__main__":

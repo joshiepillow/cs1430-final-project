@@ -7,7 +7,6 @@ import Canvas from "./Canvas";
 import ProbabilityOverlay from "./ProbabilityOverlay";
 import categoriesFile from "./categories.txt";
 import "./App.css";
-import { Button } from "@mui/material";
 
 function App() {
     const canvasRef = React.useRef(null);
@@ -20,6 +19,7 @@ function App() {
     const [roundActive, setRoundActive] = React.useState(false);
     const [timeLeft, setTimeLeft] = React.useState(20);
     const [showPopup, setShowPopup] = React.useState(false);
+    const [selectedMode, setSelectedMode] = React.useState("easy"); // Default mode is "easy"
 
     React.useEffect(() => {
         try {
@@ -79,7 +79,7 @@ function App() {
                             const formData = new FormData();
                             formData.append("image", blob, "canvas.png");
 
-                            fetch("http://localhost:5000/process-image", {
+                            fetch("http://127.0.0.1:5000/process-image", {
                                 method: "POST",
                                 body: formData,
                             })
@@ -131,10 +131,20 @@ function App() {
         setDrawing("homepage");
     };
 
+    const handleModeChange = (mode) => {
+        setSelectedMode(mode);
+    };
+
     const choosePage = () => {
         switch (drawing) {
             case "homepage":
-                return <HomePage onStart={reset} />;
+                return (
+                    <HomePage
+                        onStart={reset}
+                        selectedMode={selectedMode}
+                        onModeChange={handleModeChange}
+                    />
+                );
             case "categoryChoice":
                 return (
                     <CategoryChoicePage

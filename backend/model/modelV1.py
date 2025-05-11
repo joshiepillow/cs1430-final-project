@@ -10,6 +10,7 @@ from tensorflow.keras.layers import (
 )
 
 
+# best at checkpoints/model_v1/2025-05-11-13-11-26/epoch_20_1.09.weights.h5
 def createModel(compile_model=True):
     model = tf.keras.Sequential(
         [
@@ -21,9 +22,9 @@ def createModel(compile_model=True):
             Conv2D(128, (3, 3), activation="relu"),
             MaxPooling2D((2, 2)),
             Flatten(),
-            Dense(1024, activation="relu"),
+            Dense(256, activation="relu"),
             Dropout(0.2),
-            Dense(1024, activation="relu"),
+            Dense(128, activation="relu"),
             Dropout(0.2),
             Dense(OUTPUT_CLASSES, activation="softmax"),
         ]

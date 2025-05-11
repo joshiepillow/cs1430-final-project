@@ -4,12 +4,14 @@ import os
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard
 import modelV1
+import modelV2
 import modelV3
 from dataset import Dataset
 import datetime
 
 MODEL_VERSION_MAP = {
     "v1": modelV1.createModel,
+    "v2": modelV2.createModel,
     "v3": modelV3.createModel,
 }
 
