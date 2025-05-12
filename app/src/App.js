@@ -12,7 +12,10 @@ function App() {
     const canvasRef = React.useRef(null);
     const [image, setImage] = React.useState(null);
     const [categories, setCategories] = React.useState(null);
+    const [categoryDifficulties, setCategoryDifficulties] =
+        React.useState(null);
     const [category, setCategory] = React.useState(null);
+
     const [drawing, setDrawing] = React.useState("homepage");
     const [modelGuess, setModelGuess] = React.useState(null);
     const [probabilities, setProbabilities] = React.useState([]);
@@ -26,7 +29,15 @@ function App() {
             fetch(categoriesFile)
                 .then((res) => res.text())
                 .then((res) => {
-                    setCategories(res.split("\n"));
+                    const categoriesArray = [];
+                    const difficultiesArray = [];
+                    for (const line of res.split("\n")) {
+                        const [category, difficulty] = line.split(" - ");
+                        categoriesArray.push(category);
+                        difficultiesArray.push(difficulty);
+                    }
+                    setCategories(categoriesArray);
+                    setCategoryDifficulties(difficultiesArray);
                 });
         } catch (error) {
             alert("Error: " + error.message);
@@ -57,6 +68,28 @@ function App() {
         setRoundActive(false);
         setDrawing("result");
         setShowPopup(true);
+    };
+
+    const getGuess = (sortedProbabilities, mode) => {
+        if (mode === "easy") {
+            return sortedProbabilities[0][0];
+        }
+
+        const total = sortedProbabilities.reduce(
+            (acc, [, prob]) => acc + prob,
+            0
+        );
+
+        const randomValue = Math.random() * total;
+        let cumulativeProbability = 0;
+        for (const [guess, prob] of sortedProbabilities) {
+            cumulativeProbability += prob;
+            if (cumulativeProbability >= randomValue) {
+                return guess;
+            }
+        }
+
+        return sortedProbabilities[0][0];
     };
 
     React.useEffect(() => {
@@ -92,13 +125,24 @@ function App() {
                                         .slice(0, 10);
                                     setProbabilities(sortedProbabilities);
 
-                                    const topGuess = sortedProbabilities[0][0];
-                                    setModelGuess(topGuess);
+                                    const guess = getGuess(
+                                        sortedProbabilities,
+                                        selectedMode
+                                    );
 
-                                    if (topGuess === category) {
+                                    setModelGuess(guess);
+                                    if (guess === category) {
                                         clearInterval(interval);
                                         endRound();
                                     }
+
+                                    // const topGuess = sortedProbabilities[0][0];
+                                    // setModelGuess(topGuess);
+
+                                    // if (topGuess === category) {
+                                    //     clearInterval(interval);
+                                    //     endRound();
+                                    // }
                                 })
                                 .catch((error) =>
                                     console.error("Error:", error.message)
@@ -149,6 +193,7 @@ function App() {
                 return (
                     <CategoryChoicePage
                         categories={categories}
+                        categoryDifficulties={categoryDifficulties}
                         onCategorySelect={startRound}
                     />
                 );
@@ -159,6 +204,7 @@ function App() {
                         category={category}
                         timeLeft={timeLeft}
                         modelGuess={modelGuess}
+                        endRound={endRound}
                     />
                 );
             default:

@@ -1,100 +1,100 @@
-airplane
-alarm clock
-apple
-arm
-banana
-barn
-baseball
-basket
-basketball
-beard
-bed
-bee
-binoculars
-bird
-book
-boomerang
-bowtie
-bracelet
-bridge
-bucket
-bush
-butterfly
-cactus
-cake
-calculator
-calendar
-cannon
-carrot
-cat
-circle
-clock
-cloud
-coffee cup
-computer
-cookie
-crab
-crown
-door
-dumbbell
-elephant
-envelope
-eye
-face
-fan
-fireplace
-fish
-flower
-grapes
-guitar
-hamburger
-hammer
-hand
-headphones
-helicopter
-hot air balloon
-house
-house plant
-ice cream
-jacket
-laptop
-leaf
-light bulb
-lighthouse
-lightning
-lion
-mug
-mushroom
-octopus
-onion
-pants
-picture frame
-pig
-pineapple
-pizza
-rainbow
-rake
-roller coaster
-sailboat
-scissors
-scorpion
-skull
-smiley face
-snail
-snorkel
-squirrel
-star
-stop sign
-strawberry
-sun
-sword
-t-shirt
-teddy-bear
-television
-tornado
-traffic light
-tree
-umbrella
-whale
-wheel
-windmill
+airplane - medium
+alarm clock - medium
+apple - easy
+arm - hard
+banana - easy
+barn - hard
+baseball - medium
+basket - medium
+basketball - easy
+beard - hard
+bed - medium
+bee - medium
+binoculars - hard
+bird - easy
+book - easy
+boomerang - hard
+bowtie - medium
+bracelet - hard
+bridge - medium
+bucket - medium
+bush - medium
+butterfly - medium
+cactus - medium
+cake - easy
+calculator - hard
+calendar - medium
+cannon - hard
+carrot - easy
+cat - medium
+circle - hard
+clock - easy
+cloud - easy
+coffee cup - medium
+computer - hard
+cookie - easy
+crab - medium
+crown - medium
+door - medium
+dumbbell - medium
+elephant - medium
+envelope - medium
+eye - easy
+face - easy
+fan - hard
+fireplace - hard
+fish - easy
+flower - easy
+grapes - easy
+guitar - medium
+hamburger - easy
+hammer - medium
+hand - hard
+headphones - medium
+helicopter - medium
+hot air balloon - medium
+house - easy
+house plant - medium
+ice cream - easy
+jacket - medium
+laptop - medium
+leaf - easy
+light bulb - medium
+lighthouse - hard
+lightning - medium
+lion - medium
+mug - medium
+mushroom - easy
+octopus - medium
+onion - medium
+pants - easy
+picture frame - medium
+pig - easy
+pineapple - medium
+pizza - easy
+rainbow - easy
+rake - hard
+roller coaster - hard
+sailboat - medium
+scissors - medium
+scorpion - hard
+skull - medium
+smiley face - medium
+snail - medium
+snorkel - hard
+squirrel - hard
+star - hard
+stop sign - medium
+strawberry - hard
+sun - easy
+sword - medium
+t-shirt - easy
+teddy-bear - medium
+television - medium
+tornado - medium
+traffic light - medium
+tree - easy
+umbrella - medium
+whale - easy
+wheel - medium
+windmill - hard

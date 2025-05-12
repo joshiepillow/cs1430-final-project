@@ -1,15 +1,39 @@
 import React from "react";
 import { Button } from "@mui/material";
 
-const CategoryChoicePage = ({ categories, onCategorySelect }) => {
+const CategoryChoicePage = ({
+    categories,
+    categoryDifficulties,
+    onCategorySelect,
+}) => {
     const [choices, setChoices] = React.useState([]);
 
     React.useEffect(() => {
-        if (categories) {
-            const shuffled = [...categories].sort(() => 0.5 - Math.random());
-            setChoices(shuffled.slice(0, 3));
+        if (categories && categoryDifficulties) {
+            const easy = categories.filter(
+                (_, index) => categoryDifficulties[index] === "easy"
+            );
+            const medium = categories.filter(
+                (_, index) => categoryDifficulties[index] === "medium"
+            );
+            const hard = categories.filter(
+                (_, index) => categoryDifficulties[index] === "hard"
+            );
+
+            const getRandomFrom = (arr) =>
+                arr.length > 0
+                    ? arr[Math.floor(Math.random() * arr.length)]
+                    : null;
+
+            const selectedChoices = [
+                getRandomFrom(easy),
+                getRandomFrom(medium),
+                getRandomFrom(hard),
+            ].filter(Boolean);
+
+            setChoices(selectedChoices);
         }
-    }, [categories]);
+    }, [categories, categoryDifficulties]);
 
     return (
         <div style={{ textAlign: "center" }}>
@@ -17,18 +41,35 @@ const CategoryChoicePage = ({ categories, onCategorySelect }) => {
             <div
                 style={{
                     display: "flex",
-                    justifyContent: "center",
-                    gap: "10px",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "20px",
                 }}
             >
-                {choices.map((choice) => (
-                    <Button
-                        key={choice}
-                        variant="contained"
-                        onClick={() => onCategorySelect(choice)}
-                    >
-                        {choice}
-                    </Button>
+                {["easy", "medium", "hard"].map((difficulty, i) => (
+                    <div key={difficulty}>
+                        <h3>
+                            {difficulty.charAt(0).toUpperCase() +
+                                difficulty.slice(1)}
+                        </h3>
+                        <div
+                            style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                gap: "10px",
+                            }}
+                        >
+                            {choices[i] && (
+                                <Button
+                                    key={choices[i]}
+                                    variant="contained"
+                                    onClick={() => onCategorySelect(choices[i])}
+                                >
+                                    {choices[i]}
+                                </Button>
+                            )}
+                        </div>
+                    </div>
                 ))}
             </div>
         </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import { Button } from "@mui/material";
 
 const DrawingPage = (props) => {
     return (
@@ -28,6 +29,17 @@ const DrawingPage = (props) => {
             >
                 Computer's Guess: {props.modelGuess || "Waiting for guess..."}
             </div>
+            <Button
+                variant="contained"
+                onClick={() => props.endRound()}
+                style={{
+                    margin: "10px",
+                    backgroundColor: "#FF5733",
+                    color: "white",
+                }}
+            >
+                End Round
+            </Button>
         </div>
     );
 };
